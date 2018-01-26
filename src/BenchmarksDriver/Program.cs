@@ -107,12 +107,16 @@ namespace BenchmarksDriver
                 "Collect a PerfView trace. Optionally set custom arguments. e.g., BufferSize=256;InMemoryCircularBuffer", CommandOptionType.NoValue);
 
             // ClientJob Options
+            var clientNameOption = app.Option("--clientName",
+                "Name of client to use for testing, e.g. 'wrk'.", CommandOptionType.SingleValue);
             var clientThreadsOption = app.Option("--clientThreads",
                 "Number of threads used by client. Default is 32.", CommandOptionType.SingleValue);
             var connectionsOption = app.Option("--connections",
                 "Number of connections used by client. Default is 256.", CommandOptionType.SingleValue);
             var durationOption = app.Option("--duration",
                 "Duration of test in seconds. Default is 15.", CommandOptionType.SingleValue);
+            var maxDurationOption = app.Option("--maxDuration",
+                "MaxDuration the test can run before being shutdown. Default is 20.", CommandOptionType.SingleValue);
             var headerOption = app.Option("--header",
                 "Header added to request.", CommandOptionType.MultipleValue);
             var headersOption = app.Option("--headers",
@@ -151,13 +155,12 @@ namespace BenchmarksDriver
                 }
 
                 var session = sessionOption.Value();
-                if (String.IsNullOrEmpty(session)) 
+                if (string.IsNullOrEmpty(session))
                 {
                     session = Guid.NewGuid().ToString("n");
                 }
 
                 var description = descriptionOption.Value() ?? "";
-                
 
                 var server = serverOption.Value();
                 var client = clientOption.Value();
@@ -188,7 +191,7 @@ namespace BenchmarksDriver
                 if (!string.IsNullOrWhiteSpace(jobDefinitionPathOrUrl))
                 {
                     string jobDefinitionContent;
-                
+
                     // Load the job definition from a url or locally
                     try
                     {
@@ -208,7 +211,7 @@ namespace BenchmarksDriver
                     }
 
                     jobDefinitions = JsonConvert.DeserializeObject<JobDefinition>(jobDefinitionContent);
-                    
+
                     if (!jobDefinitions.ContainsKey(scenarioName))
                     {
                         if (scenarioName == "Default")
@@ -219,7 +222,7 @@ namespace BenchmarksDriver
                         {
                             Console.WriteLine($"Job named '{scenarioName}' not found in the job definition file.");
                         }
-                        
+
                         return 7;
                     }
                     else
@@ -262,7 +265,7 @@ namespace BenchmarksDriver
                 mergedServerJob.Merge(job);
                 var serverJob = mergedServerJob.ToObject<ServerJob>();
                 var jobOptions = mergedServerJob.ToObject<JobOptions>();
-                
+
                 if (pathOption.HasValue() && jobOptions.Paths != null && jobOptions.Paths.Count > 0)
                 {
                     jobOptions.Paths.Add(serverJob.Path);
@@ -385,7 +388,7 @@ namespace BenchmarksDriver
                             var outputFileSegments = outputFile.Split(';');
 
                             attachment.Filename = outputFileSegments[0];
-                            
+
                             if (attachment.Filename.StartsWith("http", StringComparison.OrdinalIgnoreCase))
                             {
                                 attachment.Content = _httpClient.GetByteArrayAsync(attachment.Filename).GetAwaiter().GetResult();
@@ -480,6 +483,15 @@ namespace BenchmarksDriver
                 mergedClientJob.Merge(job);
                 _clientJob = mergedClientJob.ToObject<ClientJob>();
 
+                if (clientNameOption.HasValue())
+                {
+                    _clientJob.ClientName = clientNameOption.Value();
+                }
+                else
+                {
+                    Console.WriteLine("--clientName is required to be set for ClientJobs.");
+                    return 1;
+                }
                 // Override default ClientJob settings if options are set
                 if (connectionsOption.HasValue())
                 {
@@ -487,24 +499,29 @@ namespace BenchmarksDriver
                 }
                 if (clientThreadsOption.HasValue())
                 {
-                    _clientJob.Threads = int.Parse(clientThreadsOption.Value());
+                    _clientJob.WorkerProperties.Add("Threads", int.Parse(clientThreadsOption.Value()));
                 }
                 if (durationOption.HasValue())
                 {
                     _clientJob.Duration = int.Parse(durationOption.Value());
                 }
+                if (maxDurationOption.HasValue())
+                {
+                    _clientJob.MaxDuration = int.Parse(maxDurationOption.Value());
+                }
                 if (pipelineDepthOption.HasValue())
                 {
-                    _clientJob.PipelineDepth = int.Parse(pipelineDepthOption.Value());
+                    var pipelineDepth = int.Parse(pipelineDepthOption.Value());
+                    _clientJob.WorkerProperties.Add("PipelineDepth", int.Parse(pipelineDepthOption.Value()));
 
-                    if (_clientJob.PipelineDepth > 0)
+                    if (pipelineDepth > 0)
                     {
-                        _clientJob.ScriptName = "pipeline";
+                        _clientJob.WorkerProperties.Add("ScriptName", "pipeline");
                     }
                 }
                 if (scriptNameOption.HasValue())
                 {
-                    _clientJob.ScriptName = scriptNameOption.Value();
+                    _clientJob.WorkerProperties.Add("ScriptName", scriptNameOption.Value());
                 }
                 if (methodOption.HasValue())
                 {
@@ -1101,10 +1118,10 @@ namespace BenchmarksDriver
                         connectionFilter: serverJob.ConnectionFilter,
                         webHost: serverJob.WebHost,
                         kestrelThreadCount: serverJob.KestrelThreadCount,
-                        clientThreads: clientJob.Threads,
+                        clientThreads: clientJob.WorkerProperties["Threads"] as int?,
                         connections: clientJob.Connections,
                         duration: clientJob.Duration,
-                        pipelineDepth: clientJob.PipelineDepth,
+                        pipelineDepth: clientJob.WorkerProperties["PipelineDepth"] as int?,
                         path: path,
                         method: clientJob.Method,
                         headers: clientJob.Headers,
@@ -1127,7 +1144,7 @@ namespace BenchmarksDriver
             string connectionFilter,
             WebHost webHost,
             int? kestrelThreadCount,
-            int clientThreads,
+            int? clientThreads,
             int connections,
             int duration,
             int? pipelineDepth,
@@ -1161,7 +1178,7 @@ namespace BenchmarksDriver
                         [ConnectionFilter] [nvarchar](max) NULL,
                         [WebHost] [nvarchar](max) NOT NULL,
                         [KestrelThreadCount] [int] NULL,
-                        [ClientThreads] [int] NOT NULL,
+                        [ClientThreads] [int] NULL,
                         [Connections] [int] NOT NULL,
                         [Duration] [int] NOT NULL,
                         [PipelineDepth] [int] NULL,
@@ -1259,7 +1276,7 @@ namespace BenchmarksDriver
                         string.IsNullOrEmpty(connectionFilter) ? (object)DBNull.Value : connectionFilter);
                     p.AddWithValue("@WebHost", webHost.ToString());
                     p.AddWithValue("@KestrelThreadCount", (object)kestrelThreadCount ?? DBNull.Value);
-                    p.AddWithValue("@ClientThreads", clientThreads);
+                    p.AddWithValue("@ClientThreads", (object)clientThreads ?? DBNull.Value);
                     p.AddWithValue("@Connections", connections);
                     p.AddWithValue("@Duration", duration);
                     p.AddWithValue("@PipelineDepth", (object)pipelineDepth ?? DBNull.Value);
