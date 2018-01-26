@@ -499,7 +499,7 @@ namespace BenchmarksDriver
                 }
                 if (clientThreadsOption.HasValue())
                 {
-                    _clientJob.WorkerProperties.Add("Threads", int.Parse(clientThreadsOption.Value()));
+                    _clientJob.WorkerProperties["Threads"] = int.Parse(clientThreadsOption.Value());
                 }
                 if (durationOption.HasValue())
                 {
@@ -512,16 +512,16 @@ namespace BenchmarksDriver
                 if (pipelineDepthOption.HasValue())
                 {
                     var pipelineDepth = int.Parse(pipelineDepthOption.Value());
-                    _clientJob.WorkerProperties.Add("PipelineDepth", int.Parse(pipelineDepthOption.Value()));
+                    _clientJob.WorkerProperties["PipelineDepth"] = int.Parse(pipelineDepthOption.Value());
 
                     if (pipelineDepth > 0)
                     {
-                        _clientJob.WorkerProperties.Add("ScriptName", "pipeline");
+                        _clientJob.WorkerProperties["ScriptName"] = "pipeline";
                     }
                 }
                 if (scriptNameOption.HasValue())
                 {
-                    _clientJob.WorkerProperties.Add("ScriptName", scriptNameOption.Value());
+                    _clientJob.WorkerProperties["ScriptName"] = scriptNameOption.Value();
                 }
                 if (methodOption.HasValue())
                 {

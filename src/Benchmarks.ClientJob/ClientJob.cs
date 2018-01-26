@@ -20,6 +20,7 @@ namespace Benchmarks.ClientJob
             Id = clientJob.Id;
             Connections = clientJob.Connections;
             Duration = clientJob.Duration;
+            MaxDuration = clientJob.MaxDuration;
             WorkerProperties = clientJob.WorkerProperties;
             ClientName = clientJob.ClientName;
             Headers = clientJob.Headers;
