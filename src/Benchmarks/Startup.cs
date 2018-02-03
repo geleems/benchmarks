@@ -16,6 +16,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
 using Npgsql;
+using PostgreSql;
 
 namespace Benchmarks
 {
@@ -103,7 +104,8 @@ namespace Benchmarks
 
             if (Scenarios.Any("Raw"))
             {
-                services.AddScoped<RawDb>();
+                services.AddSingleton(new Database(appSettings.ConnectionString));
+                services.AddScoped<LibpqDb>();
             }
 
             if (Scenarios.Any("Dapper"))

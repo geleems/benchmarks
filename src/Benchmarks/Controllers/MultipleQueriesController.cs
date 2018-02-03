@@ -15,7 +15,7 @@ namespace Benchmarks.Controllers
         [Produces("application/json")]
         public Task<World[]> Raw(int queries = 1)
         {
-            return ExecuteQuery<RawDb>(queries);
+            return ExecuteQuery<LibpqDb>(queries);
         }
 
         [HttpGet("dapper")]

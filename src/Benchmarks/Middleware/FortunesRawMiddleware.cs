@@ -29,7 +29,7 @@ namespace Benchmarks.Middleware
         {
             if (httpContext.Request.Path.StartsWithSegments(_path, StringComparison.Ordinal))
             {
-                var db = httpContext.RequestServices.GetService<RawDb>();
+                var db = httpContext.RequestServices.GetService<LibpqDb>();
                 var rows = await db.LoadFortunesRows();
 
                 await MiddlewareHelpers.RenderFortunesHtml(rows, httpContext, _htmlEncoder);

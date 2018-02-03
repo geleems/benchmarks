@@ -52,5 +52,9 @@
     <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets" Version="2.0.0-*" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\experimental\PostgreSql.NET\PostgreSql.NET.csproj" />
+  </ItemGroup>
+
 
 </Project>
