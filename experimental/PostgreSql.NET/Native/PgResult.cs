@@ -13,7 +13,6 @@ namespace PostgreSql.Native
         public global::System.IntPtr __Instance { get; protected set; }
 
         protected int __PointerAdjustment;
-        internal static readonly global::System.Collections.Concurrent.ConcurrentDictionary<IntPtr, PgResult> NativeToManagedMap = new global::System.Collections.Concurrent.ConcurrentDictionary<IntPtr, PgResult>();
         protected void*[] __OriginalVTables;
 
         protected bool __ownsNativeInstance;
@@ -39,7 +38,6 @@ namespace PostgreSql.Native
             : this(__CopyValue(native), skipVTables)
         {
             __ownsNativeInstance = true;
-            NativeToManagedMap[__Instance] = this;
         }
 
         protected PgResult(void* native, bool skipVTables = false)

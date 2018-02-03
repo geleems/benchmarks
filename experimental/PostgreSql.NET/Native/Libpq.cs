@@ -764,8 +764,6 @@ namespace PostgreSql.Native
             var __ret = __Internal.PQconnectStart(conninfo);
             PgConn __result0;
             if (__ret == IntPtr.Zero) __result0 = null;
-            else if (PgConn.NativeToManagedMap.ContainsKey(__ret))
-                __result0 = (PgConn) PgConn.NativeToManagedMap[__ret];
             else __result0 = PgConn.__CreateInstance(__ret);
             return __result0;
         }
@@ -775,8 +773,6 @@ namespace PostgreSql.Native
             var __ret = __Internal.PQconnectStartParams(keywords, values, expand_dbname);
             PgConn __result0;
             if (__ret == IntPtr.Zero) __result0 = null;
-            else if (PgConn.NativeToManagedMap.ContainsKey(__ret))
-                __result0 = (PgConn) PgConn.NativeToManagedMap[__ret];
             else __result0 = PgConn.__CreateInstance(__ret);
             return __result0;
         }
@@ -793,8 +789,6 @@ namespace PostgreSql.Native
             var __ret = __Internal.PQconnectdb(conninfo);
             PgConn __result0;
             if (__ret == IntPtr.Zero) __result0 = null;
-            else if (PgConn.NativeToManagedMap.ContainsKey(__ret))
-                __result0 = (PgConn) PgConn.NativeToManagedMap[__ret];
             else __result0 = PgConn.__CreateInstance(__ret);
             return __result0;
         }
@@ -804,8 +798,6 @@ namespace PostgreSql.Native
             var __ret = __Internal.PQconnectdbParams(keywords, values, expand_dbname);
             PgConn __result0;
             if (__ret == IntPtr.Zero) __result0 = null;
-            else if (PgConn.NativeToManagedMap.ContainsKey(__ret))
-                __result0 = (PgConn) PgConn.NativeToManagedMap[__ret];
             else __result0 = PgConn.__CreateInstance(__ret);
             return __result0;
         }
@@ -815,8 +807,6 @@ namespace PostgreSql.Native
             var __ret = __Internal.PQsetdbLogin(pghost, pgport, pgoptions, pgtty, dbName, login, pwd);
             PgConn __result0;
             if (__ret == IntPtr.Zero) __result0 = null;
-            else if (PgConn.NativeToManagedMap.ContainsKey(__ret))
-                __result0 = (PgConn) PgConn.NativeToManagedMap[__ret];
             else __result0 = PgConn.__CreateInstance(__ret);
             return __result0;
         }
@@ -1166,8 +1156,6 @@ namespace PostgreSql.Native
             var __ret = __Internal.PQexec(__arg0, command);
             PgResult __result0;
             if (__ret == IntPtr.Zero) __result0 = null;
-            else if (PgResult.NativeToManagedMap.ContainsKey(__ret))
-                __result0 = (PgResult) PgResult.NativeToManagedMap[__ret];
             else __result0 = PgResult.__CreateInstance(__ret);
             return __result0;
         }
@@ -1195,8 +1183,6 @@ namespace PostgreSql.Native
             var __ret = __Internal.PQexecParams(__arg0, command, nParams, paramTypes, paramValues, paramLengths, paramFormats, resultFormat);
             PgResult __result0;
             if (__ret == IntPtr.Zero) __result0 = null;
-            else if (PgResult.NativeToManagedMap.ContainsKey(__ret))
-                __result0 = (PgResult)PgResult.NativeToManagedMap[__ret];
             else __result0 = PgResult.__CreateInstance(__ret);
             return __result0;
         }
@@ -1218,8 +1204,6 @@ namespace PostgreSql.Native
             var __ret = __Internal.PQprepare(__arg0, stmtName, query, nParams, paramTypes);
             PgResult __result0;
             if (__ret == IntPtr.Zero) __result0 = null;
-            else if (PgResult.NativeToManagedMap.ContainsKey(__ret))
-                __result0 = (PgResult) PgResult.NativeToManagedMap[__ret];
             else __result0 = PgResult.__CreateInstance(__ret);
             return __result0;
         }
@@ -1247,8 +1231,6 @@ namespace PostgreSql.Native
             var __ret = __Internal.PQexecPrepared(__arg0, stmtName, nParams, paramValues, paramLengths, paramFormats, resultFormat);
             PgResult __result0;
             if (__ret == IntPtr.Zero) __result0 = null;
-            else if (PgResult.NativeToManagedMap.ContainsKey(__ret))
-                __result0 = (PgResult) PgResult.NativeToManagedMap[__ret];
             else __result0 = PgResult.__CreateInstance(__ret);
             return __result0;
         }
@@ -1294,8 +1276,6 @@ namespace PostgreSql.Native
             var __ret = __Internal.PQgetResult(__arg0);
             PgResult __result0;
             if (__ret == IntPtr.Zero) __result0 = null;
-            else if (PgResult.NativeToManagedMap.ContainsKey(__ret))
-                __result0 = (PgResult) PgResult.NativeToManagedMap[__ret];
             else __result0 = PgResult.__CreateInstance(__ret);
             return __result0;
         }
@@ -1428,8 +1408,6 @@ namespace PostgreSql.Native
             var __ret = __Internal.PQfn(__arg0, fnid, result_buf, result_len, result_is_int, __arg5, nargs);
             PgResult __result0;
             if (__ret == IntPtr.Zero) __result0 = null;
-            else if (PgResult.NativeToManagedMap.ContainsKey(__ret))
-                __result0 = (PgResult) PgResult.NativeToManagedMap[__ret];
             else __result0 = PgResult.__CreateInstance(__ret);
             return __result0;
         }
@@ -1691,8 +1669,6 @@ namespace PostgreSql.Native
             var __ret = __Internal.PQdescribePrepared(__arg0, stmt);
             PgResult __result0;
             if (__ret == IntPtr.Zero) __result0 = null;
-            else if (PgResult.NativeToManagedMap.ContainsKey(__ret))
-                __result0 = (PgResult) PgResult.NativeToManagedMap[__ret];
             else __result0 = PgResult.__CreateInstance(__ret);
             return __result0;
         }
@@ -1703,8 +1679,6 @@ namespace PostgreSql.Native
             var __ret = __Internal.PQdescribePortal(__arg0, portal);
             PgResult __result0;
             if (__ret == IntPtr.Zero) __result0 = null;
-            else if (PgResult.NativeToManagedMap.ContainsKey(__ret))
-                __result0 = (PgResult) PgResult.NativeToManagedMap[__ret];
             else __result0 = PgResult.__CreateInstance(__ret);
             return __result0;
         }
@@ -1744,8 +1718,6 @@ namespace PostgreSql.Native
             var __ret = __Internal.PQmakeEmptyPGresult(__arg0, status);
             PgResult __result0;
             if (__ret == IntPtr.Zero) __result0 = null;
-            else if (PgResult.NativeToManagedMap.ContainsKey(__ret))
-                __result0 = (PgResult) PgResult.NativeToManagedMap[__ret];
             else __result0 = PgResult.__CreateInstance(__ret);
             return __result0;
         }
@@ -1756,8 +1728,6 @@ namespace PostgreSql.Native
             var __ret = __Internal.PQcopyResult(__arg0, flags);
             PgResult __result0;
             if (__ret == IntPtr.Zero) __result0 = null;
-            else if (PgResult.NativeToManagedMap.ContainsKey(__ret))
-                __result0 = (PgResult) PgResult.NativeToManagedMap[__ret];
             else __result0 = PgResult.__CreateInstance(__ret);
             return __result0;
         }
