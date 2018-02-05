@@ -63,7 +63,7 @@ namespace BenchmarksDriver
                 "An endpoint to call before the application has shut down.", CommandOptionType.SingleValue);
             var spanOption = app.Option("-sp|--span",
                 "The time during which the client jobs are repeated, in 'HH:mm:ss' format. e.g., 48:00:00 for 2 days.", CommandOptionType.SingleValue);
-            var replaceDecription = app.Option("-rd|--replaceDecription",
+            var replaceDecription = app.Option("-rd|--replaceDescription",
                 "When used, the Excluded flag will be set on the previous records with the same Description.", CommandOptionType.NoValue);
             var replaceSession = app.Option("-rs|--replaceSession",
                 "When used, the Excluded flag will be set on the previous records with the same Session.", CommandOptionType.NoValue);
