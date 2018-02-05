@@ -575,13 +575,16 @@ namespace BenchmarksDriver
 
                 var result = Run(new Uri(server), new Uri(client), sqlConnectionString, serverJob, session, description, excluded, iterations, exclude, shutdownOption.Value(), span).Result;
 
-                if (replaceSession.HasValue() || replaceDecription.HasValue())
+                if (result == 0)
                 {
-                    var replacedSession = replaceSession.HasValue() ? session : null;
-                    var replacedDescription = replaceDecription.HasValue() ? description : null;
+                    if (replaceSession.HasValue() || replaceDecription.HasValue())
+                    {
+                        var replacedSession = replaceSession.HasValue() ? session : null;
+                        var replacedDescription = replaceDecription.HasValue() ? description : null;
 
-                    UpdateExcluded(sqlConnectionString, replacedSession, replacedDescription, true).GetAwaiter().GetResult() ;
-                    UpdateExcluded(sqlConnectionString, session, description, false).GetAwaiter().GetResult();
+                        UpdateExcluded(sqlConnectionString, replacedSession, replacedDescription, true).GetAwaiter().GetResult();
+                        UpdateExcluded(sqlConnectionString, session, description, false).GetAwaiter().GetResult();
+                    }
                 }
 
                 return result;
@@ -1167,7 +1170,7 @@ namespace BenchmarksDriver
                     var response = await _httpClient.DeleteAsync(clientJobUri);
                     LogVerbose($"{(int)response.StatusCode} {response.StatusCode}");
 
-                    if (response.StatusCode != System.Net.HttpStatusCode.NotFound)
+                    if (response.StatusCode != HttpStatusCode.NotFound)
                     {
                         response.EnsureSuccessStatusCode();
                     }
@@ -1356,6 +1359,7 @@ namespace BenchmarksDriver
                            (@DateTime
                            ,@Session
                            ,@Description
+                           ,@Excluded
                            ,@AspNetCoreVersion
                            ,@RuntimeVersion
                            ,@Scenario
