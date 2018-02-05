@@ -63,6 +63,10 @@ namespace BenchmarksDriver
                 "An endpoint to call before the application has shut down.", CommandOptionType.SingleValue);
             var spanOption = app.Option("-sp|--span",
                 "The time during which the client jobs are repeated, in 'HH:mm:ss' format. e.g., 48:00:00 for 2 days.", CommandOptionType.SingleValue);
+            var replaceDecription = app.Option("-rd|--replaceDecription",
+                "When used, the Excluded flag will be set on the previous records with the same Description.", CommandOptionType.NoValue);
+            var replaceSession = app.Option("-rs|--replaceSession",
+                "When used, the Excluded flag will be set on the previous records with the same Session.", CommandOptionType.NoValue);
 
             // ServerJob Options
             var databaseOption = app.Option("--database",
@@ -178,6 +182,7 @@ namespace BenchmarksDriver
                 var jobDefinitionPathOrUrl = jobsOptions.Value();
                 var iterations = 1;
                 var exclude = 0;
+                var excluded = replaceDecription.HasValue() || replaceDecription.HasValue();
 
                 var sqlConnectionString = sqlConnectionStringOption.Value();
 
@@ -568,7 +573,19 @@ namespace BenchmarksDriver
                     }
                 }
 
-                return Run(new Uri(server), new Uri(client), sqlConnectionString, serverJob, session, description, iterations, exclude, shutdownOption.Value(), span).Result;
+                var result = Run(new Uri(server), new Uri(client), sqlConnectionString, serverJob, session, description, excluded, iterations, exclude, shutdownOption.Value(), span).Result;
+
+                if (replaceSession.HasValue() || replaceDecription.HasValue())
+                {
+                    var replacedSession = replaceSession.HasValue() ? session : null;
+                    var replacedDescription = replaceDecription.HasValue() ? description : null;
+
+                    UpdateExcluded(sqlConnectionString, replacedSession, replacedDescription, true).GetAwaiter().GetResult() ;
+                    UpdateExcluded(sqlConnectionString, session, description, false).GetAwaiter().GetResult();
+                }
+
+                return result;
+
             });
 
             return app.Execute(args);
@@ -581,6 +598,7 @@ namespace BenchmarksDriver
             ServerJob serverJob,
             string session,
             string description,
+            bool excluded,
             int iterations,
             int exclude,
             string shutdownEndpoint,
@@ -861,6 +879,7 @@ namespace BenchmarksDriver
                                         path: serverJob.Path,
                                         session: session,
                                         description: description,
+                                        excluded: excluded,
                                         dimension: "RequestsPerSecond",
                                         value: average.RequestsPerSecond);
 
@@ -871,6 +890,7 @@ namespace BenchmarksDriver
                                         path: serverJob.Path,
                                         session: session,
                                         description: description,
+                                        excluded: excluded,
                                         dimension: "Startup Main (ms)",
                                         value: average.StartupMain);
 
@@ -881,6 +901,7 @@ namespace BenchmarksDriver
                                         path: serverJob.Path,
                                         session: session,
                                         description: description,
+                                        excluded: excluded,
                                         dimension: "First Request (ms)",
                                         value: average.FirstRequest);
 
@@ -891,6 +912,7 @@ namespace BenchmarksDriver
                                         path: serverJob.Path,
                                         session: session,
                                         description: description,
+                                        excluded: excluded,
                                         dimension: "WorkingSet (MB)",
                                         value: average.WorkingSet);
 
@@ -901,6 +923,7 @@ namespace BenchmarksDriver
                                         path: serverJob.Path,
                                         session: session,
                                         description: description,
+                                        excluded: excluded,
                                         dimension: "CPU",
                                         value: average.Cpu);
 
@@ -910,6 +933,7 @@ namespace BenchmarksDriver
                                         connectionString: sqlConnectionString,
                                         session: session,
                                         description: description,
+                                        excluded: excluded,
                                         path: serverJob.Path,
                                         dimension: "Latency (ms)",
                                         value: average.Latency);
@@ -921,6 +945,7 @@ namespace BenchmarksDriver
                                         path: serverJob.Path,
                                         session: session,
                                         description: description,
+                                        excluded: excluded,
                                         dimension: "LatencyAverage (ms)",
                                         value: average.LatencyAverage);
 
@@ -931,6 +956,7 @@ namespace BenchmarksDriver
                                         path: serverJob.Path,
                                         session: session,
                                         description: description,
+                                        excluded: excluded,
                                         dimension: "Latency50Percentile (ms)",
                                         value: average.Latency50Percentile);
 
@@ -941,6 +967,7 @@ namespace BenchmarksDriver
                                         path: serverJob.Path,
                                         session: session,
                                         description: description,
+                                        excluded: excluded,
                                         dimension: "Latency75Percentile (ms)",
                                         value: average.Latency75Percentile);
 
@@ -952,6 +979,7 @@ namespace BenchmarksDriver
                                         session: session,
                                         description: description,
                                         dimension: "Latency90Percentile (ms)",
+                                        excluded: excluded,
                                         value: average.Latency90Percentile);
 
                                     await WriteJobsToSql(
@@ -962,6 +990,7 @@ namespace BenchmarksDriver
                                         session: session,
                                         description: description,
                                         dimension: "Latency99Percentile (ms)",
+                                        excluded: excluded,
                                         value: average.Latency99Percentile);
 
                                     await WriteJobsToSql(
@@ -972,6 +1001,7 @@ namespace BenchmarksDriver
                                         session: session,
                                         description: description,
                                         dimension: "SocketErrors",
+                                        excluded: excluded,
                                         value: average.SocketErrors);
 
                                     await WriteJobsToSql(
@@ -981,6 +1011,7 @@ namespace BenchmarksDriver
                                         path: serverJob.Path,
                                         session: session,
                                         description: description,
+                                        excluded: excluded,
                                         dimension: "BadResponses",
                                         value: average.BadResponses);
 
@@ -991,6 +1022,7 @@ namespace BenchmarksDriver
                                         path: serverJob.Path,
                                         session: session,
                                         description: description,
+                                        excluded: excluded,
                                         dimension: "TotalRequests",
                                         value: average.TotalRequests);
 
@@ -1001,6 +1033,7 @@ namespace BenchmarksDriver
                                         path: serverJob.Path,
                                         session: session,
                                         description: description,
+                                        excluded: excluded,
                                         dimension: "Duration (ms)",
                                         value: average.Duration);
                                 }
@@ -1150,13 +1183,14 @@ namespace BenchmarksDriver
             Console.WriteLine(await _httpClient.GetStringAsync(uri));
         }
 
-        private static Task WriteJobsToSql(ServerJob serverJob, ClientJob clientJob, string connectionString, string path, string session, string description, string dimension, double value)
+        private static Task WriteJobsToSql(ServerJob serverJob, ClientJob clientJob, string connectionString, string path, string session, string description, bool excluded, string dimension, double value)
         {
             return WriteResultsToSql(
                         connectionString: connectionString,
                         scenario: serverJob.Scenario,
                         session: session,
                         description: description,
+                        excluded: excluded,
                         aspnetCoreVersion: serverJob.AspNetCoreVersion,
                         runtimeVersion: serverJob.RuntimeVersion,
                         hardware: serverJob.Hardware.Value,
@@ -1178,10 +1212,57 @@ namespace BenchmarksDriver
                         value: value,
                         runtimeStore: serverJob.UseRuntimeStore);
         }
+
+        private static async Task UpdateExcluded(string connectionString, string session, string description, bool excluded)
+        {
+            var excludeCmd = @"
+                UPDATE [dbo].[" + _tableName + @"]
+                SET [Excluded] = @Excluded
+                WHERE 1 = 1";
+
+            if (session == null && description == null)
+            {
+                throw new NotSupportedException("Must specify a session or a description.");
+            }
+
+            if (session != null)
+            {
+                excludeCmd += $" AND [Session] = @Session";
+            }
+
+            if (description != null)
+            {
+                excludeCmd += $" AND [Description] = @Description";
+            }
+
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.OpenAsync();
+
+                using (var command = new SqlCommand(excludeCmd, connection))
+                {
+                    var p = command.Parameters;
+
+                    if (session != null)
+                    {
+                        p.AddWithValue("@Session", session);
+                    }
+
+                    if (description != null)
+                    {
+                        p.AddWithValue("@Description", description);
+                    }
+
+                    await command.ExecuteNonQueryAsync();
+                }
+            }
+        }
+
         private static async Task WriteResultsToSql(
             string connectionString,
             string session,
             string description,
+            bool excluded,
             string aspnetCoreVersion,
             string runtimeVersion,
             string scenario,
@@ -1246,6 +1327,7 @@ namespace BenchmarksDriver
                            ([DateTime]
                            ,[Session]
                            ,[Description]
+                           ,[Excluded]
                            ,[AspNetCoreVersion]
                            ,[RuntimeVersion]
                            ,[Scenario]
@@ -1311,6 +1393,7 @@ namespace BenchmarksDriver
                     p.AddWithValue("@DateTime", DateTimeOffset.UtcNow);
                     p.AddWithValue("@Session", session);
                     p.AddWithValue("@Description", description);
+                    p.AddWithValue("@Excluded", excluded);
                     p.AddWithValue("@AspNetCoreVersion", aspnetCoreVersion);
                     p.AddWithValue("@RuntimeVersion", aspnetCoreVersion);
                     p.AddWithValue("@Scenario", scenario.ToString());
