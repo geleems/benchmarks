@@ -1253,6 +1253,8 @@ namespace BenchmarksDriver
                         p.AddWithValue("@Description", description);
                     }
 
+                    p.AddWithValue("@Excluded", excluded);
+
                     await command.ExecuteNonQueryAsync();
                 }
             }
