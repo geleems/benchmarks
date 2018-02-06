@@ -698,9 +698,9 @@ namespace BenchmarksDriver
 
                     do
                     {
-                        if (span > TimeSpan.MinValue)
+                        if (span > TimeSpan.Zero)
                         {
-                            Log($"Starting client job iteration {spanLoop}. Running since {startTime}, with {((startTime + span) - DateTime.UtcNow):c} remaining.");
+                            Log($"Starting client job iteration {spanLoop}. Running since {startTime.ToLocalTime()}, with {((startTime + span) - DateTime.UtcNow):c} remaining.");
 
                             // Clear the measures from the server job and update it on the server
                             if (spanLoop > 0)
@@ -721,7 +721,7 @@ namespace BenchmarksDriver
                         {
                             LogVerbose($"Client Job completed");
                             
-                            if (span > TimeSpan.MinValue && i == iterations && !String.IsNullOrEmpty(shutdownEndpoint))
+                            if (span > TimeSpan.Zero && i == iterations && !String.IsNullOrEmpty(shutdownEndpoint))
 
                             {
                                 Log($"Invoking '{shutdownEndpoint}' on benchmarked application...");
@@ -1125,7 +1125,7 @@ namespace BenchmarksDriver
 
                 while (true)
                 {
-                    // Prevent any network communication error from stopping the job
+                    // Retry block, prevent any network communication error from stopping the job
                     await RetryOnException(3, async () =>
                     {
                         // Ping server job to keep it alive
