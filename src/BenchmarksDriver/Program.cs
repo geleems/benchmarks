@@ -1125,14 +1125,18 @@ namespace BenchmarksDriver
 
                 while (true)
                 {
-                    // Ping server job to keep it alive
-                    LogVerbose($"GET {serverJobUri}/touch...");
-                    response = await _httpClient.GetAsync(serverJobUri + "/touch");
+                    // Prevent any network communication error from stopping the job
+                    await RetryOnException(3, async () =>
+                    {
+                        // Ping server job to keep it alive
+                        LogVerbose($"GET {serverJobUri}/touch...");
+                        response = await _httpClient.GetAsync(serverJobUri + "/touch");
 
-                    LogVerbose($"GET {clientJobUri}...");
-                    response = await _httpClient.GetAsync(clientJobUri);
-                    responseContent = await response.Content.ReadAsStringAsync();
-                    LogVerbose($"{(int)response.StatusCode} {response.StatusCode} {responseContent}");
+                        LogVerbose($"GET {clientJobUri}...");
+                        response = await _httpClient.GetAsync(clientJobUri);
+                        responseContent = await response.Content.ReadAsStringAsync();
+                        LogVerbose($"{(int)response.StatusCode} {response.StatusCode} {responseContent}");
+                    });
 
                     if (response.StatusCode == HttpStatusCode.NotFound)
                     {
@@ -1478,6 +1482,28 @@ namespace BenchmarksDriver
             {
                 Log(message);
             }
+        }
+
+        private static T RetryOnException<T>(int retries, Func<T> operation)
+        {
+            var attempts = 0;
+            do
+            {
+                try
+                {
+                    attempts++;
+                    return operation();
+                }
+                catch (Exception e)
+                {
+                    if (attempts == retries + 1)
+                    {
+                        throw;
+                    }
+
+                    Log($"Attempt {attempts} failed: {e.Message}");
+                }
+            } while (true);
         }
     }
 }
